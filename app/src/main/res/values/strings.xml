@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">蓝牙定位追踪</string>
+    <string name="tab_tracker">追踪</string>
+    <string name="tab_devices">设备</string>
+    <string name="tab_history">历史</string>
+    <string name="tab_settings">设置</string>
+    <string name="start_scan">开始扫描</string>
+    <string name="stop_scan">停止扫描</string>
+    <string name="scanning">扫描中…</string>
+    <string name="no_devices">未发现设备</string>
+    <string name="select_device">选择追踪设备</string>
+    <string name="distance_meter">%.1f 米</string>
+    <string name="rssi_dbm">%d dBm</string>
+    <string name="under_development">开发中</string>
+    <string name="under_development_desc">此功能正在开发中，敬请期待</string>
+    <string name="ble_permission_required">需要蓝牙权限</string>
+    <string name="ble_permission_rationale">蓝牙权限用于扫描附近的蓝牙设备以进行定位追踪</string>
+    <string name="location_permission_rationale">位置权限用于扫描蓝牙设备（Android 11 及以下版本需要）</string>
+    <string name="bluetooth_disabled">蓝牙未开启</string>
+    <string name="bluetooth_disabled_desc">请开启蓝牙以使用设备追踪功能</string>
+    <string name="enable_bluetooth">开启蓝牙</string>
+    <string name="settings_scanning">蓝牙扫描设置</string>
+    <string name="scan_interval">扫描间隔</string>
+    <string name="settings_algorithm">定位算法设置</string>
+    <string name="env_factor">环境参数 n</string>
+    <string name="env_factor_desc">室内办公2.5 | 居家2.7 | 室外2.0</string>
+    <string name="signal_strong">信号强</string>
+    <string name="signal_medium">信号中</string>
+    <string name="signal_weak">信号弱</string>
+    <string name="getting_closer">正在靠近</string>
+    <string name="getting_farther">正在远离</string>
+    <string name="stable">距离稳定</string>
+</resources>

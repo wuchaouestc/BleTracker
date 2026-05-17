@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#FF2196F3</color>
+    <color name="primary_dark">#FF1976D2</color>
+    <color name="accent">#FF00BCD4</color>
+    <color name="background">#FF121212</color>
+    <color name="surface">#FF1E1E1E</color>
+    <color name="on_surface">#FFFFFFFF</color>
+    <color name="signal_strong">#FF4CAF50</color>
+    <color name="signal_medium">#FFFFC107</color>
+    <color name="signal_weak">#FFF44336</color>
+    <color name="radar_grid">#FF424242</color>
+    <color name="radar_center">#FF2196F3</color>
+    <color name="target_device">#FFFF5722</color>
+</resources>
