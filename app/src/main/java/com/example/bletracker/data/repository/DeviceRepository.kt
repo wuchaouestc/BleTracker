@@ -49,8 +49,16 @@ class DeviceRepository @Inject constructor(
                 try {
                     val existing = dao.getDeviceByMac(device.mac)
                     if (existing != null) {
+                        val updatedName = if (device.name != "Unknown" && device.name.isNotBlank()) {
+                            device.name
+                        } else if (existing.name == "Unknown" && device.manufacturer.isNotBlank() && device.manufacturer != "Unknown Device") {
+                            device.manufacturer
+                        } else {
+                            existing.name
+                        }
+
                         existing.copy(
-                            name = if (device.name != "Unknown" && device.name.isNotBlank()) device.name else existing.name,
+                            name = updatedName,
                             lastSeen = device.lastSeen,
                             manufacturer = device.manufacturer.ifBlank { existing.manufacturer },
                             signalLevel = BleDevice.getSignalLevel(device.rssi)
@@ -100,8 +108,12 @@ class DeviceRepository @Inject constructor(
 }
 
 fun BleDevice.toEntity(): BleDeviceEntity {
+    val finalName = if (name == "Unknown" || name.isBlank()) {
+        if (manufacturer.isNotBlank() && manufacturer != "Unknown Device") manufacturer else "Unknown"
+    } else name
+
     return BleDeviceEntity(
-        mac = mac, name = name, lastSeen = lastSeen, manufacturer = manufacturer,
+        mac = mac, name = finalName, lastSeen = lastSeen, manufacturer = manufacturer,
         signalLevel = BleDevice.getSignalLevel(rssi), estimatedDistance = 0f
     )
 }

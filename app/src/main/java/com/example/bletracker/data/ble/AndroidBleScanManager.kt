@@ -69,25 +69,35 @@ class AndroidBleScanManager @Inject constructor(
 
                 // ═══ 设备名称获取（方案文档三步走） ═══
                 // 低延迟模式：scanRecord 已包含广播包 + 扫描响应包
-                val deviceName = resolveDeviceName(device, scanRecord)
+                var deviceName = resolveDeviceName(device, scanRecord)
+                
+                val manufacturerName = getManufacturerName(scanRecord?.manufacturerSpecificData)
+                    ?: resolveMacOui(device.address ?: "")
+
+                // 距离估算：用于过滤远距离设备，避免耗时的名称解析
+                val txPower = scanRecord?.txPowerLevel ?: -59
+                val distance = Math.pow(10.0, ((txPower - rssi) / 25.0))
+                
+                // 如果是未知设备，且距离较近（< 20m），则加入 GATT 解析队列
+                val isUnknown = deviceName == "Unknown" || deviceName.isBlank() || deviceName.startsWith("Unknown")
+                if (isUnknown && distance <= 20.0) {
+                    pendingNameResolution.putIfAbsent(device.address ?: "", true)
+                }
+
+                // 不直接覆盖 deviceName，而是通过 manufacturer 字段保存 OUI，
+                // 在 ViewModel 或 UI 层处理显示逻辑，防止覆盖数据库中已保存的真实名称。
 
                 val bleDevice = BleDevice(
                     name = deviceName,
                     mac = device.address ?: "Unknown",
                     rssi = rssi,
-                    txPower = scanRecord?.txPowerLevel ?: -59,
-                    manufacturer = getManufacturerName(scanRecord?.manufacturerSpecificData)
-                        ?: resolveMacOui(device.address ?: ""),
+                    txPower = txPower,
+                    manufacturer = manufacturerName,
                     lastSeen = System.currentTimeMillis(),
                     isBonded = device.bondState == BluetoothDevice.BOND_BONDED
                 )
 
                 scanResults[bleDevice.mac] = bleDevice
-
-                // 如果名称仍是 unknown，加入 GATT 解析队列
-                if (bleDevice.name == "Unknown" || bleDevice.name.startsWith("Unknown")) {
-                    pendingNameResolution.putIfAbsent(bleDevice.mac, true)
-                }
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "onScanResult error", e)
             }

@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import java.util.concurrent.ConcurrentHashMap
+
 @HiltViewModel
 class BleScanViewModel @Inject constructor(
     private val bleScanManager: BleScanManager,
@@ -36,6 +38,7 @@ class BleScanViewModel @Inject constructor(
     val error: SharedFlow<String> = _error
 
     private val favoriteMacs = MutableStateFlow<Set<String>>(emptySet())
+    private val dbNameCache = ConcurrentHashMap<String, String>()
     private var currentTxPower = -59
     private var currentEnvFactor = 2.5f
 
@@ -66,6 +69,13 @@ class BleScanViewModel @Inject constructor(
                     .collect { dbDevices ->
                         val favs = dbDevices.filter { it.isFavorite }.map { it.mac }.toSet()
                         favoriteMacs.value = favs
+                        
+                        dbDevices.forEach {
+                            if (it.name != "Unknown" && it.name.isNotBlank()) {
+                                dbNameCache[it.mac] = it.name
+                            }
+                        }
+                        
                         if (!isScanning.value) {
                             val scanned = _deviceList.value.associateBy { it.mac }
                             val merged = dbDevices.map { db ->
@@ -102,9 +112,16 @@ class BleScanViewModel @Inject constructor(
                             } catch (_: Exception) {
                                 0f
                             }
+                            
+                            val finalName = if (device.name == "Unknown" || device.name.isBlank()) {
+                                dbNameCache[device.mac] ?: (if (device.manufacturer.isNotBlank() && device.manufacturer != "Unknown Device") device.manufacturer else "Unknown")
+                            } else {
+                                device.name
+                            }
+                            
                             BleDeviceUiState(
                                 mac = device.mac,
-                                name = device.name,
+                                name = finalName,
                                 rssi = device.rssi,
                                 distance = dist,
                                 lastSeen = "刚刚",
