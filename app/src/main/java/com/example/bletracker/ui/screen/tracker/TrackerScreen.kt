@@ -154,7 +154,7 @@ fun TrackerScreen(
                         Text("蓝牙未开启", style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                } else if (radarTargets.isEmpty() && !isTracking) {
+                } else if (!isTracking) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = Icons.Filled.Radar,
@@ -164,19 +164,6 @@ fun TrackerScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("选择设备后点击「开始追踪」", style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                } else if (isTracking && radarTargets.isEmpty()) {
-                    // 这个分支理论上不再会走到，但保留作为防御
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Filled.GpsFixed,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("正在获取信号…", style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {

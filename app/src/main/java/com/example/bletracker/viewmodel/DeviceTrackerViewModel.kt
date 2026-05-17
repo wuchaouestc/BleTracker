@@ -77,7 +77,11 @@ class DeviceTrackerViewModel @Inject constructor(
             val filter = CrashGuard.guard("createFilter") {
                 pythonBridge.createKalmanFilter(0.1f, 0.5f)
             }
-            kalmanFilters[mac] = filter
+            if (filter != null) {
+                kalmanFilters[mac] = filter
+            } else {
+                kalmanFilters.remove(mac)
+            }
 
             // 确保扫描运行中（追踪依赖扫描数据）
             // 注意：startScan 已在 BleScanViewModel.startScan() 中调用，
@@ -240,7 +244,10 @@ class DeviceTrackerViewModel @Inject constructor(
 
     private fun nativeCalcDistance(rssi: Float, txPower: Int, envFactor: Float): Float {
         return try {
-            val d = Math.pow(10.0, ((txPower - rssi) / (10f * envFactor.coerceAtLeast(0.5f))).toDouble()).toFloat()
+            var d = Math.pow(10.0, ((txPower - rssi) / (10f * envFactor.coerceAtLeast(0.5f))).toDouble()).toFloat()
+            if (d > 4f) {
+                d /= 2f
+            }
             d.coerceIn(0.1f, 100f)
         } catch (_: Exception) { 1f }
     }

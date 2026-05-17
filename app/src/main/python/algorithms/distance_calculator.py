@@ -59,6 +59,10 @@ class DistanceCalculator:
         exponent = (self.tx_power - rssi) / denom
         distance = pow(10, exponent)
 
+        # 距离调整：当距离大于4米时，将结果除以2
+        if distance > 4.0:
+            distance = distance / 2.0
+
         # 限制合理范围
         return round(max(0.1, min(distance, 100.0)), 2)
 

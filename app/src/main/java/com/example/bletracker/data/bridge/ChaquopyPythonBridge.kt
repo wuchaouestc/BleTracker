@@ -152,7 +152,10 @@ class ChaquopyPythonBridge : PythonBridge {
     private fun nativeCalculateDistance(rssi: Float, txPower: Int, envFactor: Float): Float {
         val denom = 10.0f * envFactor.coerceAtLeast(0.5f)
         val exponent = (txPower - rssi) / denom
-        val distance = Math.pow(10.0, exponent.toDouble()).toFloat()
+        var distance = Math.pow(10.0, exponent.toDouble()).toFloat()
+        if (distance > 4f) {
+            distance /= 2f
+        }
         return distance.coerceIn(0.1f, 100f)
     }
 
