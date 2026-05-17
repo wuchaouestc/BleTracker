@@ -244,6 +244,24 @@ class AndroidBleScanManager @Inject constructor(
     }
 
     // ═══════════════════════════════════════════════
+    //  BLE 5.1 Direction Finding (AoA/AoD) 支持检测
+    // ═══════════════════════════════════════════════
+    override fun isBle51DirectionFindingSupported(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                val adapter = bluetoothAdapter ?: return false
+                // 通过反射检查隐藏 API 或未来版本的 API (isLeDirectionFindingSupported)
+                val method = adapter.javaClass.getMethod("isLeDirectionFindingSupported")
+                return method.invoke(adapter) as? Boolean ?: false
+            } catch (e: Exception) {
+                // 如果没有这个方法，说明系统原生 API 层面不支持
+                return false
+            }
+        }
+        return false
+    }
+
+    // ═══════════════════════════════════════════════
     //  设备名称解析（方案文档三步走）
     // ═══════════════════════════════════════════════
 

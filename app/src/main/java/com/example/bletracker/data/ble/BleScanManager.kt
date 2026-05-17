@@ -39,4 +39,7 @@ interface BleScanManager {
 
     /** 扫描到的设备数量 */
     val deviceCount: StateFlow<Int>
+
+    /** 检查是否支持 BLE 5.1 方位测距 (AoA/AoD) */
+    fun isBle51DirectionFindingSupported(): Boolean
 }

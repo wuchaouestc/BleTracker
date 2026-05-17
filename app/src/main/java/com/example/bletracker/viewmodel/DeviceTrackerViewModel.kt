@@ -39,6 +39,7 @@ class DeviceTrackerViewModel @Inject constructor(
     private var prevAngle: Float? = null
     private var trackedMac: String? = null
     private val distanceHistory = mutableListOf<Float>()
+    private val rssiHistory = mutableListOf<Float>()
     private var currentSettings = ScanSettings()
     private var nativeKalmanX = 0f
     private var nativeKalmanP = 1f
@@ -71,8 +72,18 @@ class DeviceTrackerViewModel @Inject constructor(
             trackedMac = mac
             _isTracking.value = true
             distanceHistory.clear()
+            rssiHistory.clear()
             prevAngle = null
             nativeKalmanInit = false
+
+            // 测试能否使用 BLE 5.1 通信 (AoA/AoD 方位测距)
+            val isBle51Supported = bleScanManager.isBle51DirectionFindingSupported()
+            if (isBle51Supported) {
+                Log.i(TAG, "硬件支持 BLE 5.1 方位测距(AoA/AoD)！将优先使用高精度角度和距离数据。")
+                // TODO: 接入厂商特定的 BLE 5.1 AoA SDK 获取真实角度。由于标准 API 尚未开放 CTE 数据，此处暂时走兼容流程。
+            } else {
+                Log.i(TAG, "当前手机不支持 BLE 5.1 方位测距，回退到 RSSI 信号强度测距方案。")
+            }
 
             val filter = CrashGuard.guard("createFilter") {
                 pythonBridge.createKalmanFilter(0.1f, 0.5f)
@@ -138,6 +149,7 @@ class DeviceTrackerViewModel @Inject constructor(
         trackedMac = null
         prevAngle = null
         distanceHistory.clear()
+        rssiHistory.clear()
     }
 
     private suspend fun updateTracking(mac: String, rssi: Int) {
@@ -149,15 +161,22 @@ class DeviceTrackerViewModel @Inject constructor(
                 try { pythonBridge.filterRssi(filter, rssi.toFloat()) } catch (_: Exception) { nativeKalmanUpdate(rssi.toFloat()) }
             } else nativeKalmanUpdate(rssi.toFloat())
 
+            // 使用最近3次数值的平均值进行平滑处理
+            rssiHistory.add(filteredRssi)
+            if (rssiHistory.size > 3) {
+                rssiHistory.removeAt(0)
+            }
+            val smoothedRssi = rssiHistory.average().toFloat()
+
             // 2. 距离
             val distance = try {
-                pythonBridge.calculateDistance(filteredRssi, currentSettings.txPower, currentSettings.envFactor)
-            } catch (_: Exception) { nativeCalcDistance(filteredRssi, currentSettings.txPower, currentSettings.envFactor) }
+                pythonBridge.calculateDistance(smoothedRssi, currentSettings.txPower, currentSettings.envFactor)
+            } catch (_: Exception) { nativeCalcDistance(smoothedRssi, currentSettings.txPower, currentSettings.envFactor) }
 
             // 3. 极坐标
             val (polarDistance, angle) = try {
-                pythonBridge.calculatePolarPosition(filteredRssi, distance, prevAngle)
-            } catch (_: Exception) { nativeCalcPolar(filteredRssi, distance, prevAngle) }
+                pythonBridge.calculatePolarPosition(smoothedRssi, distance, prevAngle)
+            } catch (_: Exception) { nativeCalcPolar(smoothedRssi, distance, prevAngle) }
             prevAngle = angle
 
             // 4. 趋势
